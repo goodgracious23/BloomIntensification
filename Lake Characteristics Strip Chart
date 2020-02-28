@@ -1,0 +1,85 @@
+#Read in the data
+covars = read.csv("lakecovars_withTrendCode.csv")
+
+#Create the plotting window
+windows(height=4, width=6.5)
+par(mfrow=c(2,2), mai=c(0.6,0.25,0.25,0), omi=c(0,0.85,0.1,0.1))
+
+#Create transparent colors for the strip chart dots to overlay
+poscol <- rgb(69,139,0, max = 255, alpha = 70, names = "poscol") #green, significant positive trend
+nocol <- rgb(127, 127, 127, max = 255, alpha = 70, names = "nocol") #gray, no signficant trend
+negcol <- rgb(16,78,139, max = 255, alpha = 70, names = "negcol") #blue, significant negative trend
+
+#Lake Surface Area
+stripchart(log10(lake_area_ha/100) ~ TrendCode, data = covars, pch=16, cex=1.5, frame = FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), xaxt="n", xlab="", ylab="", yaxt="n")
+axis(side=1, at=c(log10(0.01), log10(0.1), log10(1), log10(10), log10(100), log10(1000)), labels=c("0.01", "0.1", "1.0", "10", "100", "1000"), las=2, cex.axis=0.8)
+axis(side=2, at=c(1,2,3), labels=c("Negative","Not Significant","Positive"), las=2)
+mtext(side=3, line=0.25, expression('Surface Area (km'^2*")"), cex=0.9)
+
+# Max Depth
+stripchart(log10(maxdepth) ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), xaxt="n", xlab="", yaxt="n")
+axis(side=1, at=c(log10(1), log10(2), log10(3), log10(4), log10(5), log10(6), log10(7), log10(8), log10(9),log10(10), log10(20), log10(30), log10(40), log10(50), log10(60), log10(70), log10(80), log10(90), log10(100), log10(200)), labels=c("1","","","","","","","","", "10","","","","","","","","","100",""), 
+     las=2, cex.axis=0.8)
+mtext(side=3, line=0.25, expression('Max Depth (m)'), cex=0.9)
+axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
+
+#Total P
+stripchart(log10(tp.avg) ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xaxt="n", xlim=c(log10(2), log10(max(covars$tp.avg+10, na.rm=T))))
+axis(side=1, at=c(log10(2), log10(3), log10(4), log10(5), log10(6), log10(7), log10(8),log10(9),log10(10), log10(20), log10(30), log10(40), log10(50), log10(60), log10(70), log10(80),log10(90),log10(100), log10(200), log10(300), log10(400), log10(500), log10(600), log10(700)), 
+     labels=c("","","","","","","","",
+              "10","","","","","","","","",
+              "100","","", "", "", "",""), las=2, cex.axis=0.8)
+axis(side=2, at=c(1,2,3), labels=c("Negative","Not Significant","Positive"), las=2)
+mtext(side=3, line=0.25, expression('Total P ('*mu*g~L^-1*")"), cex=0.9)
+
+#Total N
+stripchart(log10(tn.avg) ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xaxt="n", xlim=c(log10(100), log10(10000)))
+axis(side=1, at=c(log10(100), log10(200), log10(300), log10(400), log10(500), 
+                  log10(600), log10(700), log10(800),log10(900),log10(1000), 
+                  log10(2000), log10(3000),log10(4000), log10(5000), 
+                  log10(6000), log10(7000), log10(8000), log10(9000), log10(10000)), 
+     labels=c("100","","","","","","","","",
+              "1000","","","","", "", "","", "","10000"), las=2, cex.axis=0.8)
+mtext(side=3, line=0.25, expression('Total N ('*mu*g~L^-1*")"), cex=0.9)
+axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
+
+#================================
+# Figure S3 - more strip charts
+windows(height=4, width=6.5)
+par(mfrow=c(2,2), mai=c(0.6,0.25,0.25,0), omi=c(0,0.85,0.1,0.1))
+
+#Same colors as above
+poscol <- rgb(69,139,0, max = 255, alpha = 70, names = "poscol")
+nocol <- rgb(127, 127, 127, max = 255, alpha = 70, names = "nocol")
+negcol <- rgb(16,78,139, max = 255, alpha = 70, names = "negcol")
+
+#Color - True
+stripchart(log10(colort) ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xaxt='n')
+mtext(side=3, line=0.25, expression("True Color"), cex=0.9)
+axis(side=2, at=c(1,2,3), labels=c("Negative","Not Significant","Positive"), las=2)
+axis(side=1, at=c(log10(2), log10(3), log10(4), log10(5), log10(6), log10(7), log10(8),log10(9),log10(10), log10(20), log10(30), log10(40), log10(50), log10(60), log10(70), log10(80),log10(90),log10(100), log10(200), log10(300), log10(400), log10(500), log10(600), log10(700)), 
+     labels=c("","","","","","","","",
+              "10","","","","","","","","",
+              "100","","", "", "", "",""), las=2, cex.axis=0.8)
+
+#Nutrient Ratio
+stripchart(log10(np) ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xaxt='n')
+mtext(side=3, line=0.25, expression("Molar N:P Ratio"), cex=0.9)
+axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
+axis(side=1, at=c(log10(2), log10(3), log10(4), log10(5), log10(6), log10(7), log10(8),log10(9),log10(10), log10(20), log10(30), log10(40), log10(50), log10(60), log10(70), log10(80),log10(90),log10(100), log10(200), log10(300), log10(400), log10(500), log10(600), log10(700)), 
+     labels=c("","","","","","","","",
+              "10","","","","","","","","",
+              "100","","", "", "", "",""), las=2, cex.axis=0.8)
+
+#Agriculture Percent
+stripchart(agri_pct ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xlim=c(0,100))
+axis(side=2, at=c(1,2,3), labels=c("Negative","Not Significant","Positive"), las=2)
+mtext(side=3, line=0.25, expression("% Agriculture in Watershed"), cex=0.9)
+
+
+#Development Percent
+stripchart(devel_pct ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xlim=c(0,100))
+axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
+mtext(side=3, line=0.25, expression("% Development in Watershed"), cex=0.9)
+
+
