@@ -1,0 +1,426 @@
+rm(list=ls())
+# Note: Cal added columns to result tables for lakeid, t.s. length, and recovery flag
+# and exports tables for further analysis (trends vs. t.s. length)
+
+setwd("~/Box Sync/Intense HABs in Small Lakes/HAB Trends/Analyses")
+
+library(lubridate)
+library(nlme)
+
+lakedata<-read.csv("hab_trend_data_filtered_20200203.csv", stringsAsFactors=F)
+lakedata$chla<-as.numeric(lakedata$chla)
+lakedata<-lakedata[!is.na(lakedata$chla),]
+
+lakeinfo<-read.csv("hab_trend_lakeinfo_20200203.csv", stringsAsFactors=F)
+
+#lakeinfo<-lakeinfo[lakeinfo$class != "plains",] #exclude plains lakes
+#lakedata<-lakedata[lakedata$lagoslakeid %in% lakeinfo$lagoslakeid,]
+
+##-----------------------------------------------------------------------------
+## helper function for finding x-coordinate of maximum of parabola
+xpmax<-function(a,b){
+  return(-b/(2*a))
+}
+
+##-----------------------------------------------------------------------------
+## are there trends in annual mean chla?
+res_avgchla.v.yr<-NULL
+recovflag.mean<-NULL
+
+lakes<-unique(lakedata$lagoslakeid)
+
+for(ii in 1:length(lakes)){
+  tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+  tmp$year<-year(tmp$sampledate)
+  tmp.agg<-aggregate(tmp$chla, by=list(tmp$year), FUN="mean", na.rm=T)
+  names(tmp.agg)<-c("year","avg.chla")
+  tmp.agg$year2<-tmp.agg$year^2
+  tmp.agg$avg.chla<-scale(tmp.agg$avg.chla) #standardize response variable
+  #plot(tmp.agg$year,tmp.agg$avg.chla, main=ii, type="b")
+  lm.tmp<-gls(avg.chla ~ year, correlation=corAR1(form = ~ year), data=tmp.agg)
+  qm.tmp<-try(gls(avg.chla ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg, 
+                  control=glsControl(opt="optim")))
+  
+  
+  if(class(qm.tmp)!="try-error"){
+    if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+       qm.tmp$coefficients[3]<0 &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+  }
+  
+  lm.summ<-summary(lm.tmp)$tTable
+  ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+  res_avgchla.v.yr<-rbind(res_avgchla.v.yr,
+                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+}
+
+header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+colnames(res_avgchla.v.yr)<-header
+res_avgchla.v.yr<-as.data.frame(res_avgchla.v.yr)
+res_avgchla.v.yr$recovery.flag<-FALSE
+res_avgchla.v.yr$recovery.flag[recovflag.mean]<-TRUE
+
+length(recovflag.mean) #0 lakes show evidence of recovery after increase 
+
+hist(res_avgchla.v.yr$b1, main="Trend in mean", xlab="Standardized trend")
+summary(res_avgchla.v.yr$b1)
+sum(res_avgchla.v.yr$b1>0)/length(lakes) #Percent of all lakes are increasing mean chla
+sum(res_avgchla.v.yr$b1>0 & res_avgchla.v.yr$b1.p <0.05)/length(lakes) #9% of lakes nominally statistically significant
+sum(res_avgchla.v.yr$b1<0 & res_avgchla.v.yr$b1.p <0.05)/length(lakes) #13% of lakes significantly decreasing
+
+##-----------------------------------------------------------------------------
+## are there trends in 95th percentile of chla?
+res_p95chla.v.yr<-NULL
+recovflag.p95<-NULL
+
+for(ii in 1:length(lakes)){
+  tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+  tmp$year<-year(tmp$sampledate)
+  tmp.agg<-aggregate(tmp$chla, by=list(tmp$year), FUN="quantile", probs=0.95, na.rm=T)
+  names(tmp.agg)<-c("year","p95.chla")
+  tmp.agg$year2<-tmp.agg$year^2
+  tmp.agg$p95.chla<-scale(tmp.agg$p95.chla)
+  
+  lm.tmp<-try(gls(p95.chla ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+  qm.tmp<-try(gls(p95.chla ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+  
+  if(class(lm.tmp)=="try-error"){next}
+  
+  if(class(qm.tmp)!="try-error"){
+    if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+       qm.tmp$coefficients[3]<0 &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+  }
+  
+  lm.summ<-summary(lm.tmp)$tTable
+  ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+  res_p95chla.v.yr<-rbind(res_p95chla.v.yr,
+                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+}
+
+header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+colnames(res_p95chla.v.yr)<-header
+res_p95chla.v.yr<-as.data.frame(res_p95chla.v.yr)
+res_p95chla.v.yr$recovery.flag<-FALSE
+res_p95chla.v.yr$recovery.flag[recovflag.p95]<-TRUE
+
+length(recovflag.p95) #0 lakes show evidence of recovery following eutrophication
+
+hist(res_p95chla.v.yr$b1, main="Trend in 95th percentile", xlab="Standardized trend")
+summary(res_p95chla.v.yr$b1)
+
+sum(res_p95chla.v.yr$b1>0)/length(lakes) #Percent of all lakes are increasing 95th percentile chla
+sum(res_p95chla.v.yr$b1>0 & res_p95chla.v.yr$b1.p <0.05)/length(lakes) #5% lakes nominally statistically significant
+sum(res_p95chla.v.yr$b1<0 & res_p95chla.v.yr$b1.p <0.05)/length(lakes) #12% of lakes significantly decreasing
+
+##-----------------------------------------------------------------------------
+## are there trends in variance of chla?
+res_varchla.v.yr<-NULL
+recovflag.var<-NULL
+
+for(ii in 1:length(lakes)){
+  tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+  tmp$year<-year(tmp$sampledate)
+  tmp.agg<-aggregate(tmp$chla, by=list(tmp$year), FUN="var", na.rm=T)
+  names(tmp.agg)<-c("year","var.chla")
+  tmp.agg$year2<-tmp.agg$year^2
+  tmp.agg$var.chla<-scale(tmp.agg$var.chla)
+  
+  lm.tmp<-try(gls(var.chla ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+  qm.tmp<-try(gls(var.chla ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+  
+  if(class(lm.tmp)=="try-error"){next}
+  
+  if(class(qm.tmp)!="try-error"){
+    if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+       qm.tmp$coefficients[3]<0 &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+  }
+  
+  lm.summ<-summary(lm.tmp)$tTable
+  ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+  res_varchla.v.yr<-rbind(res_varchla.v.yr,
+                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+}
+
+header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+colnames(res_varchla.v.yr)<-header
+res_varchla.v.yr<-as.data.frame(res_varchla.v.yr)
+res_varchla.v.yr$recovery.flag<-FALSE
+res_varchla.v.yr$recovery.flag[recovflag.var]<-TRUE
+
+length(recovflag.var) #0 lakes show evidence of recovery following eutrophication
+
+hist(res_varchla.v.yr$b1, main="Trend in intra-annual variance", xlab="Standardized trend")
+summary(res_varchla.v.yr$b1)
+
+sum(res_varchla.v.yr$b1>0)/length(lakes) #Percent of all lakes are increasing intra-annual variance of chla
+sum(res_varchla.v.yr$b1>0 & res_varchla.v.yr$b1.p <0.05)/length(lakes) #4% of lakes nominally statistically significant
+sum(res_varchla.v.yr$b1<0 & res_varchla.v.yr$b1.p <0.05)/length(lakes) #9% of lakes significantly decreasing
+##-----------------------------------------------------------------------------
+## Are there trends in proportion of obs with degraded water quality?
+# thresh<-4#ug/L; threshold for a degraded lake in the mountains/upper mid west
+# res_t4ug.v.yr<-NULL
+# recovflag.t4ug<-NULL
+# 
+# for(ii in 1:length(lakes)){
+#   tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+#   tmp$year<-year(tmp$sampledate)
+#   tmp.agg<-data.frame(year=unique(tmp$year),t4ug=NA)
+#   for(yy in 1:length(tmp.agg$year)){
+#     tmp.yy<-tmp[tmp$year == tmp.agg$year[yy],]
+#     tmp.agg$t4ug[yy]<-sum(tmp.yy$chla > thresh)/nrow(tmp.yy)
+#   }
+#   tmp.agg$year2<-tmp.agg$year^2
+#   
+#   if(var(tmp.agg$t4ug)==0){
+#     ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#     res_t4ug.v.yr<-rbind(res_t4ug.v.yr,
+#                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,rep(NA,8)))
+#     next
+#     }
+#   
+#   lm.tmp<-try(gls(t4ug ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   qm.tmp<-try(gls(t4ug ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   
+#   if(class(lm.tmp)=="try-error"){next}
+#   
+#   if(class(qm.tmp)!="try-error"){
+#     if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+#        qm.tmp$coefficients[3]<0 &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+#   }
+#   lm.summ<-summary(lm.tmp)$tTable
+#   
+#   #lm.tmp<-summary(lm(tmp.agg$hypeut ~ tmp.agg$year))$coefficients
+#   ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#   res_t4ug.v.yr<-rbind(res_t4ug.v.yr,
+#                           c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+#   
+# }
+# header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+# colnames(res_t4ug.v.yr)<-header
+# res_t4ug.v.yr<-as.data.frame(res_t4ug.v.yr)
+# res_t4ug.v.yr$recovery.flag<-FALSE
+# res_t4ug.v.yr$recovery.flag[recovflag.t4ug]<-TRUE
+# 
+# length(recovflag.t4ug) # 0 lakes show evidence of recovery following eutrophication
+# 
+# hist(res_t4ug.v.yr$b1, main="Trend in proportion >4 ug/L", xlab="Trend coefficient")
+# summary(res_t4ug.v.yr$b1)
+# 
+# sum(res_t4ug.v.yr$b1>0, na.rm=T)/length(lakes) #45% of lakes are increasing proportion degraded
+# sum(res_t4ug.v.yr$b1>0 & res_t4ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #6% nominally statistically significant
+# sum(res_t4ug.v.yr$b1<0 & res_t4ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #12% of lakes significantly decreasing
+
+##-----------------------------------------------------------------------------
+## Are there trends in proportion of obs with impaired function?
+# thresh<-11#ug/L; threshold for an impaired lake in the mountains/upper mid west
+# res_t11ug.v.yr<-NULL
+# recovflag.t11ug<-NULL
+# 
+# for(ii in 1:length(lakes)){
+#   tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+#   tmp$year<-year(tmp$sampledate)
+#   tmp.agg<-data.frame(year=unique(tmp$year),t11ug=NA)
+#   for(yy in 1:length(tmp.agg$year)){
+#     tmp.yy<-tmp[tmp$year == tmp.agg$year[yy],]
+#     tmp.agg$t11ug[yy]<-sum(tmp.yy$chla > thresh)/nrow(tmp.yy)
+#   }
+#   tmp.agg$year2<-tmp.agg$year^2
+#   
+#   if(var(tmp.agg$t11ug)==0){
+#     ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#     res_t11ug.v.yr<-rbind(res_t11ug.v.yr,
+#                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,rep(NA,8)))
+#     next
+#   }
+#   
+#   lm.tmp<-try(gls(t11ug ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   qm.tmp<-try(gls(t11ug ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   
+#   if(class(lm.tmp)=="try-error"){next}
+#   
+#   if(class(qm.tmp)!="try-error"){
+#     if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+#        qm.tmp$coefficients[3]<0 &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+#   }
+#   lm.summ<-summary(lm.tmp)$tTable
+#   
+#   ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#   res_t11ug.v.yr<-rbind(res_t11ug.v.yr,
+#                        c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+#   
+# }
+# header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+# colnames(res_t11ug.v.yr)<-header
+# res_t11ug.v.yr<-as.data.frame(res_t11ug.v.yr)
+# res_t11ug.v.yr$recovery.flag<-FALSE
+# res_t11ug.v.yr$recovery.flag[recovflag.t11ug]<-TRUE
+# 
+# length(recovflag.t11ug) # 9 lakes show evidence of recovery following eutrophication
+# 
+# hist(res_t11ug.v.yr$b1, main="Trend in proportion >11 ug/L", xlab="Trend coefficient")
+# summary(res_t11ug.v.yr$b1)
+# 
+# sum(res_t11ug.v.yr$b1>0, na.rm=T)/length(lakes) #34.8% of lakes are increasing proportion impaired
+# sum(res_t11ug.v.yr$b1>0 & res_t11ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #5% nominally statistically significant
+# sum(res_t11ug.v.yr$b1<0 & res_t11ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #12% of lakes significantly decreasing
+
+# ##-----------------------------------------------------------------------------
+# ## Are there trends in proportion of obs with severe blooms?
+# thresh<-20#ug/L; threshold for an impaired lake in the mountains/upper mid west
+# res_t20ug.v.yr<-NULL
+# recovflag.t20ug<-NULL
+# 
+# for(ii in 1:length(lakes)){
+#   tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+#   tmp$year<-year(tmp$sampledate)
+#   tmp.agg<-data.frame(year=unique(tmp$year),t20ug=NA)
+#   for(yy in 1:length(tmp.agg$year)){
+#     tmp.yy<-tmp[tmp$year == tmp.agg$year[yy],]
+#     tmp.agg$t20ug[yy]<-sum(tmp.yy$chla > thresh)/nrow(tmp.yy)
+#   }
+#   tmp.agg$year2<-tmp.agg$year^2
+#   
+#   if(var(tmp.agg$t20ug)==0){
+#     ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#     res_t20ug.v.yr<-rbind(res_t20ug.v.yr,
+#                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,rep(NA,8)))
+#     next
+#   }
+#   
+#   lm.tmp<-try(gls(t20ug ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   qm.tmp<-try(gls(t20ug ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+#   
+#   if(class(lm.tmp)=="try-error"){next}
+#   
+#   if(class(qm.tmp)!="try-error"){
+#     if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+#        qm.tmp$coefficients[3]<0 &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+#        xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+#   }
+#   lm.summ<-summary(lm.tmp)$tTable
+#   
+#   ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+#   res_t20ug.v.yr<-rbind(res_t20ug.v.yr,
+#                         c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+#   
+# }
+# header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+# colnames(res_t20ug.v.yr)<-header
+# res_t20ug.v.yr<-as.data.frame(res_t20ug.v.yr)
+# res_t20ug.v.yr$recovery.flag<-FALSE
+# res_t20ug.v.yr$recovery.flag[recovflag.t20ug]<-TRUE
+# 
+# length(recovflag.t20ug) # 11 lakes show evidence of recovery following eutrophication
+# 
+# hist(res_t20ug.v.yr$b1, main="Trend in proportion >20 ug/L", xlab="Trend coefficient")
+# summary(res_t20ug.v.yr$b1)
+# 
+# sum(res_t20ug.v.yr$b1>0, na.rm=T)/length(lakes) #29% of lakes are increasing proportion impaired
+# sum(res_t20ug.v.yr$b1>0 & res_t20ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #5% nominally statistically significant
+# sum(res_t20ug.v.yr$b1<0 & res_t20ug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #10% of lakes significantly decreasing
+
+##-----------------------------------------------------------------------------
+## Are there trends in proportion of obs with impaired function?
+thresh1<-11#ug/L; threshold for an impaired lake in the mountains/upper mid west
+thresh2<-40#ug/L; threshold for an impaired lake in the plains
+res_tIMug.v.yr<-NULL
+recovflag.tIMug<-NULL
+
+for(ii in 1:length(lakes)){
+  tmp<-lakedata[lakedata$lagoslakeid == lakes[ii],]
+  tmp$year<-year(tmp$sampledate)
+  tmp.agg<-data.frame(year=unique(tmp$year),tIMug=NA)
+  for(yy in 1:length(tmp.agg$year)){
+    tmp.yy<-tmp[tmp$year == tmp.agg$year[yy],]
+    if(lakeinfo$class[ii]=="mountains"){
+      tmp.agg$tIMug[yy]<-sum(tmp.yy$chla > thresh1)/nrow(tmp.yy)
+    }
+    if(lakeinfo$class[ii]=="plains"){
+      tmp.agg$tIMug[yy]<-sum(tmp.yy$chla > thresh2)/nrow(tmp.yy)
+    }
+  }
+  tmp.agg$year2<-tmp.agg$year^2
+  
+  if(var(tmp.agg$tIMug)==0){
+    ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+    res_tIMug.v.yr<-rbind(res_tIMug.v.yr,
+                          c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,rep(NA,8)))
+    next
+  }
+  
+  lm.tmp<-try(gls(tIMug ~ year, correlation=corAR1(form = ~ year), data=tmp.agg))
+  qm.tmp<-try(gls(tIMug ~ year + year2, correlation=corAR1(form = ~ year), data=tmp.agg))
+  
+  if(class(lm.tmp)=="try-error"){next}
+  
+  if(class(qm.tmp)!="try-error"){
+    if(AIC(qm.tmp)-AIC(lm.tmp)<(-2) &
+       qm.tmp$coefficients[3]<0 &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) > min(tmp$year) &
+       xpmax(qm.tmp$coefficients[3],qm.tmp$coefficients[2]) < max(tmp$year)){recovflag.mean<-c(recovflag.mean,ii)}
+  }
+  lm.summ<-summary(lm.tmp)$tTable
+  
+  ts.length<-max(tmp.agg$year, na.rm=TRUE) - min(tmp.agg$year, na.rm=TRUE) + 1
+  res_tIMug.v.yr<-rbind(res_tIMug.v.yr,
+                        c(tmp$lagoslakeid[1],nrow(tmp.agg),ts.length,c(t(lm.summ))))
+  
+}
+header<-c("lagoslakeid","nyr","ts.length","b0","b0.se","b0.t","b0.p","b1","b1.se","b1.t","b1.p")
+colnames(res_tIMug.v.yr)<-header
+res_tIMug.v.yr<-as.data.frame(res_tIMug.v.yr)
+res_tIMug.v.yr$recovery.flag<-FALSE
+res_tIMug.v.yr$recovery.flag[recovflag.tIMug]<-TRUE
+
+length(recovflag.tIMug) # 9 lakes show evidence of recovery following eutrophication
+
+hist(res_tIMug.v.yr$b1, main="Trend in proportion impaired", xlab="Trend coefficient")
+summary(res_tIMug.v.yr$b1)
+
+sum(res_tIMug.v.yr$b1>0, na.rm=T)/length(lakes) #34.8% of lakes are increasing proportion impaired
+sum(res_tIMug.v.yr$b1>0 & res_tIMug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #5% nominally statistically significant
+sum(res_tIMug.v.yr$b1<0 & res_tIMug.v.yr$b1.p <0.05, na.rm=T)/length(lakes) #12% of lakes significantly decreasing
+
+
+## Export all results coef tables ---------------------------------------------
+write.csv(res_avgchla.v.yr, file="results_AvgChl_vs_Year_gls.csv", row.names=FALSE)
+write.csv(res_p95chla.v.yr, file="results_p95Chl_vs_Year_gls.csv", row.names=FALSE)
+write.csv(res_varchla.v.yr, file="results_VarChl_vs_Year_gls.csv", row.names=FALSE)
+# write.csv(res_t4ug.v.yr, file="results_tIMug_vs_Year_gls.csv", row.names=FALSE)
+# write.csv(res_t11ug.v.yr, file="results_t11ug_vs_Year_gls.csv", row.names=FALSE)
+write.csv(res_tIMug.v.yr, file="results_tIMug_vs_Year_gls.csv", row.names=FALSE)
+
+## Export lakes that "recover" ------------------------------------------------
+recov.avg<-res_avgchla.v.yr[res_avgchla.v.yr$b1<0 & res_avgchla.v.yr$b1.p < 0.05,]
+recov.p95<-res_p95chla.v.yr[res_p95chla.v.yr$b1<0 & res_p95chla.v.yr$b1.p < 0.05,]
+recov.var<-res_varchla.v.yr[res_varchla.v.yr$b1<0 & res_varchla.v.yr$b1.p < 0.05,]
+# recov.t11ug<-res_t11ug.v.yr[res_t11ug.v.yr$b1<0 & res_t11ug.v.yr$b1.p < 0.05,]
+# recov.t20.ug<-res_t20ug.v.yr[res_t20ug.v.yr$b1<0 & res_t20ug.v.yr$b1.p < 0.05,]
+recov.tIMug<-res_tIMug.v.yr[res_tIMug.v.yr$b1<0 & res_tIMug.v.yr$b1.p < 0.05,]
+
+recov.avg$resp<-rep("avg",nrow(recov.avg))
+recov.p95$resp<-rep("p95",nrow(recov.p95))
+recov.var$resp<-rep("var",nrow(recov.var))
+# recov.t11ug$resp<-rep("t11",nrow(recov.t11ug))
+# recov.t20.ug$resp<-rep("t20",nrow(recov.t20.ug))
+recov.tIMug$resp<-rep("tIM",nrow(recov.tIMug))
+
+dt<-lagosne_load(version="1.087.3")
+recovinfo<-dt$locus
+
+all_recov<-rbind(recov.avg, recov.p95, recov.var, recov.tIMug)
+all_recov<-all_recov[order(all_recov$lagoslakeid),]
+all_recov<-all_recov[complete.cases(all_recov),]
+
+all_recov<-left_join(all_recov, lakeinfo)
+write.csv(all_recov, file="recovered_lakes_20200204.csv",row.names=F)

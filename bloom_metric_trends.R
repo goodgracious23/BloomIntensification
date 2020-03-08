@@ -3,15 +3,17 @@ rm(list=ls())
 #Packages required for analysis - will install if not previously installed
 if (!require(lubridate)) install.packages('lubridate')
 if (!require(nlme)) install.packages('nlme')
+if (!require(here)) install.packages("here")
 library(lubridate)
 library(nlme)
+library(here)
 
 #Read in the lake data
-lakedata<-read.csv("hab_trend_data_filtered_20200203.csv", stringsAsFactors=F)
+lakedata<-read.csv(here("chla_data.csv"), stringsAsFactors=F)
 lakedata$chla<-as.numeric(lakedata$chla)
 lakedata<-lakedata[!is.na(lakedata$chla),]
 
-lakeinfo<-read.csv("hab_trend_lakeinfo_20200203.csv", stringsAsFactors=F)
+lakeinfo<-read.csv(here("lake_info.csv"), stringsAsFactors=F)
 
 ##-----------------------------------------------------------------------------
 ## helper function for finding x-coordinate of maximum of parabola
@@ -107,7 +109,7 @@ res_p95chla.v.yr$recovery.flag[recovflag.p95]<-TRUE
 # How many lakes showing recovery after initially getting worse?
 length(recovflag.p95) 
 
-Summary of Trends in Severity (95th percentile of chlorophyll a)
+#Summary of Trends in Severity (95th percentile of chlorophyll a)
 summary(res_p95chla.v.yr$b1)
 sum(res_p95chla.v.yr$b1>0)/length(lakes) #Percent of lakes with a positive trend (regardless of significance)
 sum(res_p95chla.v.yr$b1>0 & res_p95chla.v.yr$b1.p <0.05)/length(lakes) #Perecent of lakes with significant positive trends
@@ -198,11 +200,11 @@ Improving_Lakes = (length(unique(c(intensity.neg, severity.neg, duration.neg)))/
 print(c("% Deteriorating Overall =", round(Deteriorating_Lakes, digits=1)))# The percentage of lakes that are significantly deteriorating
 print(c("% Improving Overall =", round(Improving_Lakes, digits=1)))# The percentage of lakes that are significantly improving, overall
 
-#---------------------
-# Figure 1: Histogram of Standardized Trend Coefficients
+
+# Figure 1: Histogram of Standardized Trend Coefficients ------------------------------------------
 
 # Set up 3 panel figure
-windows(height=2.5, width=7)
+pdf(file=here("fig1_trend_histogram.pdf"), height=2.5, width=7)
 par(mfrow=c(1,3), mai=c(0.3,0.3,0.15,0.1), omi=c(0.35,0.3,0.2,0.1))
 
 # Intensity - trends in the mean
@@ -219,4 +221,9 @@ mtext(side=1, line=1, outer=T, "Standardized Trend Coefficient", font=1)
 hist(res_tIMug.v.yr$b1, main="Duration", cex.main=1.5, las=2, col=c("gray70","gray70", "gray70", "gray70", "gray70","gray70", "gray70", "gray70", "gray40","gray40","gray40", "gray40", "gray40", "gray40"), ylim=c(0,100), xlim=c(-0.1,0.1), font.main=1)
 lines(c(0,0), c(-10,90), lwd=2, lty=2, col="black")
 
+dev.off()
 
+## Export results coefficient tables --------------------------------------------------------------
+write.csv(res_avgchla.v.yr, file=here("results_AvgChl_vs_Year_gls.csv"), row.names=FALSE)
+write.csv(res_p95chla.v.yr, file=here("results_p95Chl_vs_Year_gls.csv"), row.names=FALSE)
+write.csv(res_tIMug.v.yr, file=here("results_tIMug_vs_Year_gls.csv"), row.names=FALSE)

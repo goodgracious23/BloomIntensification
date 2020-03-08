@@ -1,8 +1,15 @@
-#Read in the data
-covars = read.csv("lakecovars_withTrendCode.csv")
+## Reproduce strip charts (Figures 2 and S3)
 
-#Create the plotting window
-windows(height=4, width=6.5)
+rm(list=ls())
+
+if (!require(here)) install.packages("here")
+library(here)
+
+#Read in the data
+covars = read.csv(here("lake_covariates.csv"))
+
+## Figure 2: Lake characteristics strip chart -----------------------------------------------------
+pdf(file=here("fig2_lakechar_stripcharts.pdf"), height=4, width=6.5)
 par(mfrow=c(2,2), mai=c(0.6,0.25,0.25,0), omi=c(0,0.85,0.1,0.1))
 
 #Create transparent colors for the strip chart dots to overlay
@@ -43,9 +50,11 @@ axis(side=1, at=c(log10(100), log10(200), log10(300), log10(400), log10(500),
 mtext(side=3, line=0.25, expression('Total N ('*mu*g~L^-1*")"), cex=0.9)
 axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
 
-#================================
-# Figure S3 - more strip charts
-windows(height=4, width=6.5)
+dev.off()
+
+
+## Figure S3 - more strip charts ------------------------------------------------------------------
+pdf(file=here("FigS3_addtl_stripcharts.pdf"),height=4, width=6.5)
 par(mfrow=c(2,2), mai=c(0.6,0.25,0.25,0), omi=c(0,0.85,0.1,0.1))
 
 #Same colors as above
@@ -76,10 +85,9 @@ stripchart(agri_pct ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, ve
 axis(side=2, at=c(1,2,3), labels=c("Negative","Not Significant","Positive"), las=2)
 mtext(side=3, line=0.25, expression("% Agriculture in Watershed"), cex=0.9)
 
-
 #Development Percent
 stripchart(devel_pct ~ TrendCode, data = covars, pch=19, cex=1.5, frame=FALSE, vertical = FALSE, method="jitter", jitter = 0.3, col=c(negcol, nocol, poscol), yaxt="n", xlab="", xlim=c(0,100))
 axis(side=2, at=c(1,2,3), labels=c("", "", ""), las=2, cex.axis=0.8)
 mtext(side=3, line=0.25, expression("% Development in Watershed"), cex=0.9)
 
-
+dev.off()

@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583676636011.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3347459564",
+    "id" : "180CCD75",
+    "lastKnownWriteTime" : 1583679361,
+    "last_content_update" : 1583679361716,
+    "path" : "~/GitHub/BloomIntensification/bloom_metric_trends.R",
+    "project_path" : "bloom_metric_trends.R",
+    "properties" : {
+        "cursorPosition" : "206,41",
+        "scrollLine" : "199"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

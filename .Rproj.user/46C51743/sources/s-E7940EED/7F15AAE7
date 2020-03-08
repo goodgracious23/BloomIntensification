@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583677633502.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "7F15AAE7",
+    "lastKnownWriteTime" : 1583679397,
+    "last_content_update" : 1583679397558,
+    "path" : "~/GitHub/BloomIntensification/lake_characteristics_strip_chart.R",
+    "project_path" : "lake_characteristics_strip_chart.R",
+    "properties" : {
+        "cursorPosition" : "2,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
