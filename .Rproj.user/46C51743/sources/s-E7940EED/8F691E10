@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1583684498358.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8F691E10",
+    "lastKnownWriteTime" : 1583684708,
+    "last_content_update" : 1583684708410,
+    "path" : "~/GitHub/BloomIntensification/Rarefaction/rarefaction_tests.R",
+    "project_path" : "Rarefaction/rarefaction_tests.R",
+    "properties" : {
+        "cursorPosition" : "478,60",
+        "scrollLine" : "469"
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
