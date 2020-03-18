@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584561610993.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3013743338",
+    "id" : "33FEAD8C",
+    "lastKnownWriteTime" : 1584561688,
+    "last_content_update" : 1584561688627,
+    "path" : "~/GitHub/BloomIntensification/Fig1_ExemplarTimeSeries.R",
+    "project_path" : "Fig1_ExemplarTimeSeries.R",
+    "properties" : {
+        "cursorPosition" : "19,0",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

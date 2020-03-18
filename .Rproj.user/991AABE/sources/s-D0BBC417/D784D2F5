@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584561776746.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "4223543599",
+    "id" : "D784D2F5",
+    "lastKnownWriteTime" : 1584537578,
+    "last_content_update" : 1584537578,
+    "path" : "~/GitHub/BloomIntensification/TrendConsistency_by_TimeSeriesLength.R",
+    "project_path" : "TrendConsistency_by_TimeSeriesLength.R",
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

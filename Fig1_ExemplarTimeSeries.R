@@ -9,14 +9,14 @@ library(nlme)
 library(here)
 
 #Read in the lake data
-lakedata<-read.csv(here("hab_trend_data_filtered_20200203.csv"), stringsAsFactors=F)
+lakedata<-read.csv(here("chla_data.csv"), stringsAsFactors=F)
 lakedata$chla<-as.numeric(lakedata$chla)
 lakedata<-lakedata[!is.na(lakedata$chla),]
 lakedata$year<- year(lakedata$sampledate)
 lakedata$DOY<- yday(lakedata$sampledate)
 lakedata$YearFrac<- lakedata$year + (lakedata$DOY/365)
 
-lakeinfo<-read.csv(here("hab_trend_lakeinfo_20200203.csv"), stringsAsFactors=F)
+lakeinfo<-read.csv(here("lake_info.csv"), stringsAsFactors=F)
 lakes<-unique(lakedata$lagoslakeid)
 
 #Colors for plot
@@ -79,3 +79,4 @@ plot(duration.agg$Group.1, (duration.agg$x/duration.sample$x)*100, ylim=c(0,100)
 mtext(side=4, line=3, "% Observations", col=durationcol, font=2)
 axis(side=4, at = c(0,20,40,60,80,100), labels=c("0", "20", "40", "60", "80", "100"), las=2)
 
+dev.off()

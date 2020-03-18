@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1584561752814.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3507968228",
+    "id" : "E3D459C0",
+    "lastKnownWriteTime" : 1584561503,
+    "last_content_update" : 1584561503,
+    "path" : "~/GitHub/BloomIntensification/intensification_covariate_analysis.R",
+    "project_path" : "intensification_covariate_analysis.R",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
