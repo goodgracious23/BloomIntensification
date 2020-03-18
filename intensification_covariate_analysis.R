@@ -113,20 +113,21 @@ se<-c(summary(lm.avg.chla2)$tTable[-1,2],
 
 pdf(here("covariates_barplot.pdf"), width=6.5, height=4)
 
-poscol <- rgb(69,139,0, max = 255, alpha = 150, names = "poscol")
-nocol <- rgb(127, 127, 127, max = 255, alpha = 150, names = "nocol")
-negcol <- rgb(16,78,139, max = 255, alpha = 150, names = "negcol")
+#Colors for plot
+durationcol <- rgb(102,102,102, max = 255, alpha = 200)
+severitycol <- rgb(16,78,139, max = 255, alpha = 200)
+intensecol <- rgb(0,139,139, max = 255, alpha = 200)
 
 par(mar=c(6.1,4.1,1.1,1.1))
 
-bp<-barplot(coeffmat[,-1], beside=T, col=c(poscol, negcol, nocol),
-        names.arg=c("Lake Area","Lake Depth","CA:SA","TN trend","TP trend","N:P","Precip trend","Temp trend","% Agriculture","% Developed","% Wetland"),
-        ylab="Standardized regression coefficient", ylim=c(-0.05,0.08),las=2)
+bp<-barplot(coeffmat[,-1], beside=T, col=c(intensecol, severitycol, durationcol),
+            names.arg=c("Lake Area","Lake Depth","CA:SA","TN trend","TP trend","N:P","Precip trend","Temp trend","% Agriculture","% Developed","% Wetland"),
+            ylab="Standardized regression coefficient", ylim=c(-0.05,0.08),las=2)
 
 #add error bars
 error.bar(x=c(t(bp)), y=c(t(coeffmat[,-1])),upper=2*se,length=0.01, col="black")
 
-legend("top", pch=15, col=c(poscol, negcol, nocol),
+legend("top", pch=15, col=c(intensecol, severitycol, durationcol),
        legend=c("Intensity","Severity","Duration"), ncol=3, bty="n", pt.cex=2)
 abline(0,0)
 dev.off()
