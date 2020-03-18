@@ -201,25 +201,30 @@ print(c("% Deteriorating Overall =", round(Deteriorating_Lakes, digits=1)))# The
 print(c("% Improving Overall =", round(Improving_Lakes, digits=1)))# The percentage of lakes that are significantly improving, overall
 
 
-# Figure 1: Histogram of Standardized Trend Coefficients ------------------------------------------
+# Figure 2: Histogram of Standardized Trend Coefficients ------------------------------------------
 
 # Set up 3 panel figure
 pdf(file=here("fig1_trend_histogram.pdf"), height=2.5, width=7)
 par(mfrow=c(1,3), mai=c(0.3,0.3,0.15,0.1), omi=c(0.35,0.3,0.2,0.1))
 
+#Color Palette
+intensecol <- rgb(82,139,139, max = 255, alpha = 100)
+intensecol1 <- rgb(82,139,139, max = 255, alpha = 250)
+severitycol <- rgb(16,78,139, max = 255, alpha = 100)
+severitycol1 <- rgb(16,78,139, max = 255, alpha = 220)
+durationcol <- rgb(102,102,102, max = 255, alpha = 100)
+durationcol1 <- rgb(102,102,102, max = 255, alpha = 240)
+
 # Intensity - trends in the mean
-hist(res_avgchla.v.yr$b1, ylim=c(0,100), xlim=c(-0.4,0.4), main="Intensity", cex.axis=1, las=2, col=c("palegreen3","palegreen3", "palegreen3", "palegreen3", "palegreen3", "palegreen3","palegreen3", "palegreen4", "palegreen4", "palegreen4", "palegreen4", "palegreen4", "palegreen4"), cex.main=1.5, font.main=1)
-lines(c(0,0), c(-10,90), lwd=2, lty=2, col="black")
+hist(res_avgchla.v.yr$b1, ylim=c(0,80), xlim=c(-0.4,0.4), main="Intensity", cex.axis=1, las=2, col=c(intensecol,intensecol, intensecol, intensecol, intensecol,intensecol, intensecol, intensecol1, intensecol1,intensecol1,intensecol1, intensecol1, intensecol1, intensecol1), cex.main=1.5, font.main=1)
 mtext(side=2, line=3, "Frequency", font=1)
 
 # Severity - trends in the 95th percentile
-hist(res_p95chla.v.yr$b1, xlab="Standardized trend", ylim=c(0,100), xlim=c(-0.3,0.3), main="Severity", cex.axis=1, las=2, col=c("skyblue3","skyblue3", "skyblue3", "skyblue3", "skyblue3","skyblue3", "skyblue4","skyblue4","skyblue4", "skyblue4", "skyblue4", "skyblue4"), cex.main=1.5, font.main=1)
-lines(c(0,0), c(-10,90), lwd=2, lty=2, col="black")
+hist(res_p95chla.v.yr$b1, xlab="Standardized trend", ylim=c(0,80), xlim=c(-0.4,0.4), main="Severity", cex.axis=1, las=2, col=c(severitycol,severitycol, severitycol, severitycol, severitycol,severitycol, severitycol1, severitycol1, severitycol1,severitycol1,severitycol1, severitycol1, severitycol1, severitycol1), cex.main=1.5, font.main=1)
 mtext(side=1, line=1, outer=T, "Standardized Trend Coefficient", font=1)
 
 #Duration - proportion of obs above 20 ug/L per season
-hist(res_tIMug.v.yr$b1, main="Duration", cex.main=1.5, las=2, col=c("gray70","gray70", "gray70", "gray70", "gray70","gray70", "gray70", "gray70", "gray40","gray40","gray40", "gray40", "gray40", "gray40"), ylim=c(0,100), xlim=c(-0.1,0.1), font.main=1)
-lines(c(0,0), c(-10,90), lwd=2, lty=2, col="black")
+hist(res_tIMug.v.yr$b1, main="Duration", cex.main=1.5, las=2, col=c(durationcol,durationcol, durationcol, durationcol, durationcol,durationcol, durationcol, durationcol, durationcol1,durationcol1,durationcol1, durationcol1, durationcol1, durationcol1), ylim=c(0,80), xlim=c(-0.1,0.1), font.main=1)
 
 dev.off()
 
