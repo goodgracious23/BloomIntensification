@@ -204,7 +204,7 @@ print(c("% Improving Overall =", round(Improving_Lakes, digits=1)))# The percent
 # Figure 2: Histogram of Standardized Trend Coefficients ------------------------------------------
 
 # Set up 3 panel figure
-pdf(file=here("fig1_trend_histogram.pdf"), height=2.5, width=7)
+pdf(file=here("fig2_trend_histogram.pdf"), height=2.5, width=7)
 par(mfrow=c(1,3), mai=c(0.3,0.3,0.15,0.1), omi=c(0.35,0.3,0.2,0.1))
 
 #Color Palette
