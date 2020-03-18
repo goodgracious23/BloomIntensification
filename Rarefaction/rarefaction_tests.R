@@ -935,32 +935,35 @@ rmseratio.grtr<-rbind(loop.rmse(rf.peter2013$dat.grtr,rf.peter2013$interval),
 #plotting
 tiff("rmse_over_true.tif",units="in",width=3.5,height=4.5,res=300)
 
-poscol <- rgb(69,139,0, max = 255, alpha = 70, names = "poscol")
-nocol <- rgb(127, 127, 127, max = 255, alpha = 70, names = "nocol")
-negcol <- rgb(16,78,139, max = 255, alpha = 70, names = "negcol")
+durationcol <- rgb(102,102,102, max = 255, alpha = 70)
+severitycol <- rgb(16,78,139, max = 255, alpha = 70)
+intensecol <- rgb(0,139,139, max = 255, alpha = 70)
 
 par(mfrow=c(3,1), mar=c(3.1,3.1,1.1,1.1),mgp=c(1.6,0.5,0),tcl=-0.3)
 
+#Intensity
 plot(1:30,apply(rmseratio.mean,2,median,na.rm=T),type="l",ylim=range(rmseratio.mean,na.rm=T),
      xlab="Sampling interval (days)", ylab="RMSE/true value")
 for(ii in 1:nrow(rmseratio.mean)){
-  lines(1:30,rmseratio.mean[ii,],col=poscol)
+  lines(1:30,rmseratio.mean[ii,],col=intensecol)
 }
-lines(1:30,apply(rmseratio.mean,2,median,na.rm=T),lwd=3, col="seagreen4")
+lines(1:30,apply(rmseratio.mean,2,median,na.rm=T),lwd=3, col="darkcyan")
 mtext("Intensity (Mean Annual Chlorophyll)",3,cex=0.7)
 
+# Severity
 plot(1:30,apply(rmseratio.95pct,2,median,na.rm=T),type="l",ylim=range(rmseratio.95pct,na.rm=T),
      xlab="Sampling interval (days)", ylab="RMSE/true value")
 for(ii in 1:nrow(rmseratio.95pct)){
-  lines(1:30,rmseratio.95pct[ii,],col=negcol)
+  lines(1:30,rmseratio.95pct[ii,],col=severitycol)
 }
 lines(1:30,apply(rmseratio.95pct,2,median,na.rm=T),lwd=3, col="dodgerblue4")
 mtext("Severity (95th percentile Chlorophyll)",3,cex=0.7)
 
+# Duration
 plot(1:30,apply(rmseratio.grtr,2,median,na.rm=T),type="l",ylim=range(rmseratio.grtr,na.rm=T),
      xlab="Sampling interval (days)", ylab="RMSE/true value")
 for(ii in 1:nrow(rmseratio.grtr)){
-  lines(1:30,rmseratio.grtr[ii,],col="grey")
+  lines(1:30,rmseratio.grtr[ii,],col=durationcol)
 }
 lines(1:30,apply(rmseratio.grtr,2,median,na.rm=T),lwd=3, col="grey30")
 mtext("Duration (Proportion of values > threshold)",3,cex=0.7)
