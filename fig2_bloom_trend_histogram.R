@@ -70,7 +70,10 @@ severity.pos.ho = res_p95chla.v.yr[res_p95chla.v.yr$b1>0 & res_p95chla.v.yr$b1.p
 #===============================================================
 #Goal is to determine how many indicators are significantly changing for a given lake to determine if there is strong evidence (many indicators changing in the same direction) or weak evidence (only one indicator changing) for the trend in improvement or deterioration of a given lake
 
-# IMPROVING LAKES - Indicator Tally
+if (!require(plyr)) install.packages('plyr')
+library(plyr)
+
+# IMPROVING LAKES - Indicator Tally for significant trends
 negsig_all = c(intensity.neg, severity.neg, duration.neg)
 negsig_all = as.data.frame(negsig_all)
 neg_indicator_count = count(negsig_all, 'negsig_all')
@@ -79,7 +82,7 @@ one_ind_neg <- length(neg_indicator_count[neg_indicator_count$freq==1, "freq"])/
 two_ind_neg <- length(neg_indicator_count[neg_indicator_count$freq==2, "freq"])/length(neg_indicator_count$negsig_all)*100
 three_ind_neg <- length(neg_indicator_count[neg_indicator_count$freq==3, "freq"])/length(neg_indicator_count$negsig_all)*100
 
-# DETERIORATING LAKES - Indicator Tally
+# DETERIORATING LAKES - Indicator Tally for significant trends
 possig_all = c(intensity.pos, severity.pos, duration.pos)
 possig_all = as.data.frame(possig_all)
 pos_indicator_count = count(possig_all, 'possig_all')
@@ -87,4 +90,6 @@ pos_indicator_count = count(possig_all, 'possig_all')
 one_ind_pos <- length(pos_indicator_count[pos_indicator_count$freq==1, "freq"])/length(pos_indicator_count$possig_all)*100
 two_ind_pos <- length(pos_indicator_count[pos_indicator_count$freq==2, "freq"])/length(pos_indicator_count$possig_all)*100
 three_ind_pos <- length(pos_indicator_count[pos_indicator_count$freq==3, "freq"])/length(pos_indicator_count$possig_all)*100
+
+
 
